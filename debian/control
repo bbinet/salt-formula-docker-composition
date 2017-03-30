@@ -1,0 +1,15 @@
+Source: salt-formula-docker-composition
+Maintainer: bruno.binet@helioslite.com
+Section: admin
+Priority: optional
+Build-Depends: debhelper (>= 9), salt-master, python, python-yaml
+Standards-Version: 3.9.6
+Homepage: http://www.tcpcloud.eu
+Vcs-Browser: https://github.com/tcpcloud/salt-formula-docker-composition
+Vcs-Git: https://github.com/tcpcloud/salt-formula-docker-composition.git
+
+Package: salt-formula-docker-composition
+Architecture: all
+Depends: ${misc:Depends}, salt-master, reclass
+Description: docker-composition salt formula
+ Install and configure docker-composition system.
