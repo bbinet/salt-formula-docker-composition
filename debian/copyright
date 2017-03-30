@@ -1,7 +1,7 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: salt-formula-docker-composition
 Upstream-Contact: 
-Source: https://github.com/tcpcloud/salt-formula-docker-composition
+Source: https://github.com/bbinet/salt-formula-docker-composition
 
 Files: *
 Copyright: 2014-2015 HeliosLite
