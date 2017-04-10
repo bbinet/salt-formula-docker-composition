@@ -1,0 +1,34 @@
+applications:
+  - docker-composition
+
+parameters:
+  docker-composition:
+    saltstack:
+      enabled: true
+      master:
+        saltmaster:
+          conf:
+            file_roots:
+              base:
+                - /srv/setupify/states
+            reclass: &reclass
+              storage_type: yaml_fs
+              inventory_base_uri: /srv/setupify/reclass
+            ext_pillar:
+              - reclass: *reclass
+            master_tops:
+              reclass: *reclass
+            file_ignore_glob:
+              - '*.git*'
+              - '*.pyc'
+              - '*.swp'
+            log_level: debug
+
+      compose:
+        version: '2'
+        services:
+          saltmaster:
+            hostname: saltmaster
+            image: bbinet/salt-master:latest
+            volumes:
+              - ./saltmaster/etc_salt_master.d:/etc/salt/master.d

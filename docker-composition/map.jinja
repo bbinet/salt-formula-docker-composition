@@ -1,29 +1,14 @@
+{#
+vim: syntax=sls
+#}
 
-{%- set source_engine = salt['pillar.get']('docker-composition:saltstack:source:engine') %}
+{%- set cfg = salt['grains.filter_by']({
+    'Debian': {
+        'base': salt['grains.get']('root', '/etc/docker/compose'),
+    }
+}, merge=salt['pillar.get']('docker-composition:cfg')) %}
 
-{%- load_yaml as base_defaults %}
-{%- if source_engine == 'git' %}
-Debian:
-  pkgs:
-  - python-psycopg2
-  dir:
-    base: /srv/docker-composition/venv
-    home: /var/lib/docker-composition
-    workspace: /srv/docker-composition/workspace
-RedHat:
-  pkgs:
-  - python-psycopg2
-  dir:
-    base: /srv/docker-composition/venv
-    home: /var/lib/docker-composition
-    workspace: /srv/docker-composition/workspace
-{%- else %}
-Debian:
-  pkgs:
-  - docker-composition
-  dir:
-    base: /usr/lib/docker-composition
-{%- endif %}
-{%- endload %}
-
-{%- set saltstack = salt['grains.filter_by'](base_defaults, merge=salt['pillar.get']('docker-composition:saltstack')) %}
+{%- set saltstack = salt['grains.filter_by']({
+    'Debian': {
+    }
+}, merge=salt['pillar.get']('docker-composition:saltstack')) %}

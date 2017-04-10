@@ -63,7 +63,7 @@ In the unfortunate event that bugs are discovered, they should be reported to
 the appropriate issue tracker. Use Github issue tracker for specific salt
 formula:
 
-    https://github.com/salt-formulas/salt-formula-apache/issues
+    https://github.com/bbinet/salt-formula-docker-composition/issues
 
 For feature requests, bug reports or blueprints affecting entire ecosystem,
 use Launchpad salt-formulas project:
@@ -77,7 +77,7 @@ You can also join salt-formulas-users team and subscribe to mailing list:
 Developers wishing to work on the salt-formulas projects should always base
 their work on master branch and submit pull request against specific formula.
 
-    https://github.com/salt-formulas/salt-formula-apache
+    https://github.com/salt-formulas/salt-formula-docker-composition
 
 Any questions or feedback is always welcome so feel free to join our IRC
 channel:
