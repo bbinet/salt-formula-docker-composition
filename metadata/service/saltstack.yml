@@ -22,7 +22,8 @@ parameters:
               - '*.git*'
               - '*.pyc'
               - '*.swp'
-            log_level: debug
+            log_level: error
+            log_level_logfile: quiet
 
       compose:
         version: '2'
