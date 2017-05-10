@@ -8,6 +8,11 @@ vim: syntax=sls
     }
 }, merge=salt['pillar.get']('docker-composition:cfg')) %}
 
+{%- set traefik = salt['grains.filter_by']({
+    'Debian': {
+    }
+}, merge=salt['pillar.get']('docker-composition:traefik')) %}
+
 {%- set saltstack = salt['grains.filter_by']({
     'Debian': {
     }

@@ -1,0 +1,23 @@
+applications:
+  - docker-composition
+
+parameters:
+  docker-composition:
+    traefik:
+      enabled: true
+      conf:
+        docker:
+          exposedbydefault: "false"
+      compose:
+        version: '2'
+        volumes:
+          traefik-data: {}
+        services:
+          traefik:
+            hostname: saltmaster
+            image: traefik:v1.3.0-rc1
+            command: -c /traefik.toml
+            volumes:
+              - /var/run/docker.sock:/var/run/docker.sock
+              - ./traefik.toml:/traefik.toml
+              - traefik-data:/var/lib/traefik
