@@ -1,6 +1,3 @@
-applications:
-  - docker-composition
-
 parameters:
   docker-composition:
     saltstack:
