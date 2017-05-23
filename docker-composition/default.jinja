@@ -1,0 +1,49 @@
+{%- if composition.enabled %}
+
+{%- if composition.compose is defined %}
+{%- block compose %}
+{{ cpath }}:
+  file.directory:
+    - makedirs: True
+    - clean: True
+
+{{ cpath }}/docker-compose.yml:
+  file.managed:
+    # docker-compose cfg is managed in pillar so it is easily overridable
+    - contents: |
+        {{ composition.compose | yaml(False) | indent(8) }}
+    - contents_newline: True
+    - makedirs: True
+    - require_in:
+      - file: {{ cpath }}
+{%- endblock compose %}
+{%- endif %}
+
+{%- block main %}{%- endblock main %}
+
+{%- if composition.secret is defined %}
+{%- block secret %}
+{{ cpath }}/secrets:
+  file.directory:
+    - makedirs: True
+    - clean: true
+    - require_in:
+      - file: {{ cpath }}
+{%- for secret, secretcfg in composition.secret.iteritems() %}
+{{ cpath }}/secrets/{{ secret }}:
+  file.managed:
+{%- if secretcfg.pillar is defined %}
+    - contents_pillar: {{ secretcfg.pillar }}
+{%- else %}
+    - contents: |
+        {{ secretcfg | indent(8) }}
+{%- endif %}
+    - contents_newline: True
+    - makedirs: True
+    - require_in:
+      - file: {{ cpath }}/secrets
+{%- endfor %}
+{%- endblock secret %}
+{%- endif %}
+
+{%- endif %}

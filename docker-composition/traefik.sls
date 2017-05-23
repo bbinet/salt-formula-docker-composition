@@ -1,28 +1,16 @@
-{%- from "docker-composition/map.jinja" import cfg, traefik with context %}
-{%- if traefik.enabled and traefik.compose is defined %}
+{%- from "docker-composition/map.jinja" import cfg, traefik as composition with context %}
+{%- set cname = 'traefik' %}
+{%- set cpath = cfg.base + '/compose/' + cname %}
+{%- extends "docker-composition/default.jinja" %}
 
-{{ cfg.base }}/compose/traefik:
-  file.directory:
-    - makedirs: True
-    - clean: True
-
-{{ cfg.base }}/compose/traefik/docker-compose.yml:
+{%- block main %}
+{{ cpath }}/traefik.toml:
   file.managed:
-    # docker-compose cfg is managed in pillar so it is easily overridable
-    - contents: |
-        {{ traefik.compose | yaml(False) | indent(8) }}
-    - contents_newline: True
-    - makedirs: True
-    - require_in:
-      - file: {{ cfg.base }}/compose/traefik
-
-{{ cfg.base }}/compose/traefik/traefik.toml:
-  file.managed:
-    - source: salt://docker-composition/files/traefik/traefik.toml
+    - source: salt://docker-composition/files/{{ cname }}/traefik.toml
     - template: jinja
     - context:
-        conf: {{ traefik.conf }}
+        conf: {{ composition.conf }}
     - makedirs: True
     - require_in:
-      - file: {{ cfg.base }}/compose/traefik
-{%- endif %}
+      - file: {{ cpath }}
+{%- endblock main %}

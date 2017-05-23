@@ -23,7 +23,7 @@ parameters:
             log_level_logfile: quiet
 
       compose:
-        version: '2'
+        version: '3.1'
         services:
           saltmaster:
             hostname: saltmaster
