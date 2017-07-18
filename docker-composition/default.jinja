@@ -19,8 +19,6 @@
 {%- endblock compose %}
 {%- endif %}
 
-{%- block main %}{%- endblock main %}
-
 {%- if composition.secret is defined %}
 {%- block secret %}
 {{ cpath }}/secrets:
@@ -45,5 +43,36 @@
 {%- endfor %}
 {%- endblock secret %}
 {%- endif %}
+
+{%- if composition.directory is defined %}
+{%- block directory %}
+{%- for dir, dircfg in composition.directory.iteritems() %}
+{{ cpath }}/{{ dir }}:
+  file.directory:
+    - makedirs: True
+    - clean: {{ dircfg.get('clean', True) }}
+    - require_in:
+      - file: {{ cpath }}
+{%- if dircfg.yamlfile is defined %}
+{%- for yamlfile, yamlfilecfg in dircfg.yamlfile.iteritems() %}
+{{ cpath }}/{{ dir }}/{{ yamlfile }}:
+  file.managed:
+{%- if yamlfilecfg.pillar is defined %}
+    - contents_pillar: {{ yamlfilecfg.pillar }}
+{%- else %}
+    - contents: |
+        {{ yamlfilecfg | yaml(False) | indent(8) }}
+{%- endif %}
+    - contents_newline: True
+    - makedirs: True
+    - require_in:
+      - file: {{ cpath }}/{{ dir }}
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
+{%- endblock directory %}
+{%- endif %}
+
+{%- block main %}{%- endblock main %}
 
 {%- endif %}
