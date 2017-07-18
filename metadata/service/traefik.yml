@@ -12,7 +12,7 @@ parameters:
         services:
           traefik:
             hostname: saltmaster
-            image: traefik:v1.3.0-rc1
+            image: traefik:v1.3.3
             command: -c /traefik.toml
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
