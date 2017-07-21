@@ -7,8 +7,6 @@ parameters:
           exposedbydefault: "false"
       compose:
         version: '3.1'
-        volumes:
-          traefik-data: {}
         services:
           traefik:
             hostname: saltmaster
@@ -17,4 +15,3 @@ parameters:
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
               - ./traefik.toml:/traefik.toml
-              - traefik-data:/var/lib/traefik
