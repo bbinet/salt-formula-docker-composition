@@ -1,0 +1,46 @@
+parameters:
+  docker-composition:
+    hig:
+      enabled: true
+
+      _hs_output_path: /var/lib/hindsight
+
+      compose:
+        version: '3.1'
+        services:
+          influxdb:
+            hostname: influxdb
+            image: bbinet/influxdb:v1.2.0
+            environment:
+              ROOT_PASSWORD: root
+          grafana:
+            hostname: grafana
+            image: grafana/grafana:4.4.1
+            environment:
+              GF_SECURITY_ADMIN_PASSWORD: "admin"
+              GF_USERS_ALLOW_SIGN_UP: "false"
+              GF_USERS_ALLOW_ORG_CREATE: "false"
+              GF_USERS_AUTO_ASSIGN_ORG: "false"
+              GF_USERS_AUTO_ASSIGN_ORG_ROLE: "Editor"
+              GF_LOG_LEVEL: Info
+            depends_on:
+              - influxdb
+          hindsight:
+            hostname: hindsight
+            image: bbinet/hindsight:v0.11.1-hl2
+            command: /etc/hindsight/hindsight.cfg
+            stop_signal: SIGINT
+            volumes:
+              - ./hindsight/etc_hindsight:/etc/hindsight
+            depends_on:
+              - influxdb
+
+      directory:
+        hindsight:
+          hsconfig:
+            output_path: ${docker-composition:hig:_hs_output_path}
+            analysis_lua_path: "/etc/hindsight/modules/?.lua;/usr/lib/luasandbox/modules/?.lua"
+            plugins:
+              input:
+                prune_input:
+                  output_path: ${docker-composition:hig:_hs_output_path}

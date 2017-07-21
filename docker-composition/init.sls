@@ -6,4 +6,7 @@ include:
 {%- if pillar.docker-composition.saltstack is defined %}
 - docker-composition.saltstack
 {%- endif %}
+{%- if pillar.docker-composition.hig is defined %}
+- docker-composition.hig
+{%- endif %}
 {%- endif %}
