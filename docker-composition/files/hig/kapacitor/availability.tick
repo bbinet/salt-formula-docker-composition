@@ -1,0 +1,37 @@
+//availability
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+var cfg_by = {{ cfg.by }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''
+   SELECT sum("duree") AS "alert_duration" FROM "{{ db }}"."autogen"."alert" WHERE "level"='OK' AND ("id"='roll' OR "id"='tilt')
+	''')
+    .period(cfg_period)
+    .every(cfg_every)
+    .groupBy(cfg_by)
+    .fill(0)
+
+  |alert()
+    .crit(lambda: "alert_duration" > -1)
+    .id('alert_duration')
+    .idTag('id')
+{%- if cfg.log is defined %}
+    .log(cfg_log)
+{%- endif %}
+
+  |where(lambda: "id" != '') 
+
+  |influxDBOut()
+    .database('{{ db }}')
+    .retentionPolicy('autogen')
+    .measurement('ava')
+    .tag('tracker', cfg_tracker)
+	
+	

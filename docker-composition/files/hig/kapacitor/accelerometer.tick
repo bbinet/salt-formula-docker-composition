@@ -1,0 +1,38 @@
+//accelerometer
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''SELECT "accelerometer" AS "value" FROM "{{ db }}"."autogen"."trserver"''')
+    .period(cfg_period)
+    .every(cfg_every)
+
+  |alert()
+    .crit(lambda: "value"!=0)
+    .message('')
+    .id('accelerometer')
+    .idTag('id')
+    .levelTag('level')
+{%- if cfg.log is defined %}
+    .log(cfg_log)
+{%- endif %}
+
+  |eval(lambda: if ("value"!=0, 3, 0), lambda: "value")
+    .as('Ilevel','data')
+    .keep('Ilevel','data')
+
+  |where(lambda: "id" != '') 
+
+  |influxDBOut()
+    .database('{{ db }}')
+    .retentionPolicy('autogen')
+    .measurement('alert')
+    .tag('tracker', cfg_tracker)
+	
+	

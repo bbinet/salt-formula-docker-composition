@@ -1,0 +1,42 @@
+//rollEncoder
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+var cfg_by = {{ cfg.by }}
+var cfg_crit = {{ cfg.crit }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''SELECT derivative(mean("roll_encoder"),10s) AS "value", derivative(mean("mode"),10s) AS "mode" FROM "{{ db }}"."autogen"."trserver" WHERE time < now() GROUP BY time(10s) ''' ) 
+    .period(cfg_period)
+    .every(cfg_every)
+    .groupBy(cfg_by)
+
+  |alert()
+	.message('')
+    .crit(lambda: "value" > cfg_crit AND "mode"==0)
+    .id('roll_encoder')
+    .idTag('id')
+    .levelTag('level')
+{%- if cfg.log is defined %}
+    .log(cfg_log)
+{%- endif %}
+
+
+  |eval(lambda: if ("value" > cfg_crit AND "mode"==0, 3, 0), lambda: "value")
+    .as('Ilevel','data')
+    .keep('Ilevel','data')
+  
+  |where(lambda: "id" != '') 
+
+  |influxDBOut()
+    .database('{{ db }}')
+    .retentionPolicy('autogen')
+    .measurement('alert')
+    .tag('tracker', cfg_tracker)
+	
+	

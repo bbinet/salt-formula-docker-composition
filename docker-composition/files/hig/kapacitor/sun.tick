@@ -1,0 +1,25 @@
+//sun
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+var cfg_day = '{{ cfg.day }}'
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''
+   SELECT "mode","_sun" FROM "{{ db }}"."autogen"."trserver" 
+	''')
+    .period(cfg_period)
+    .every(cfg_every)
+
+  |stateDuration(lambda: "_sun"==cfg_day)
+    .as('sun_duration')
+
+  |influxDBOut()
+    .database('{{ db }}')
+    .retentionPolicy('autogen')
+    .measurement('ava')
+    .tag('tracker', cfg_tracker)
+	
+	
