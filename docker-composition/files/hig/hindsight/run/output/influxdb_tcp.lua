@@ -204,7 +204,10 @@ end
 
 function process_message()
     if not retry then
-        local msg = decode_message(read_message("raw"))
+        local ok, msg = pcall(decode_message, read_message("raw"))
+        if not ok then
+            return -1, string.format("decode_message failure: %s", tostring(msg))
+        end
         if msg.Payload and msg.Fields then
             local tags = {}
             local fields = {}

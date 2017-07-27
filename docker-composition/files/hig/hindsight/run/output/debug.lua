@@ -30,8 +30,10 @@ local function get_timestamp(ts)
 end
 
 function process_message()
-    local raw = read_message("raw")
-    local msg = decode_message(raw)
+    local ok, msg = pcall(decode_message, read_message("raw"))
+    if not ok then
+        return -1, string.format("decode_message failure: %s", tostring(msg))
+    end
     write(":Uuid: ", get_uuid(msg.Uuid), "\n")
     write(":Timestamp: ", get_timestamp(msg.Timestamp), "\n")
     write(":Type: ", msg.Type or "<nil>", "\n")

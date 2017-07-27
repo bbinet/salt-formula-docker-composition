@@ -11,9 +11,12 @@ local postprocess_cfg = read_config("postprocess_cfg")
 
 
 function process_message()
-    local msg = postprocess_msg(
-        decode_message(read_message("raw")), postprocess_cfg)
-    inject_message(msg)
+    local ok, msg_in = pcall(decode_message, read_message("raw"))
+    if not ok then
+        return -1, string.format("decode_message failure: %s", tostring(msg_in))
+    end
+    local msg_out = postprocess_msg(msg_in, postprocess_cfg)
+    inject_message(msg_out)
     return 0
 end
 
