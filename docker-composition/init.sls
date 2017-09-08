@@ -9,4 +9,7 @@ include:
 {%- if pillar.docker-composition.hig is defined %}
 - docker-composition.hig
 {%- endif %}
+{%- if pillar.docker-composition.rsm is defined %}
+- docker-composition.rsm
+{%- endif %}
 {%- endif %}

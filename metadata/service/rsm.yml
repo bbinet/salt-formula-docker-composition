@@ -1,0 +1,12 @@
+parameters:
+  docker-composition:
+    rsm:
+      enabled: true
+      compose:
+        version: '3.1'
+        services:
+          rsm:
+            hostname: rsm
+            image: bbinet/reverse-ssh-manager:latest
+            cap_add:
+              - SYS_PTRACE

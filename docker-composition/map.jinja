@@ -22,3 +22,8 @@ vim: syntax=sls
     'Debian': {
     }
 }, merge=salt['pillar.get']('docker-composition:hig')) %}
+
+{%- set rsm = salt['grains.filter_by']({
+    'Debian': {
+    }
+}, merge=salt['pillar.get']('docker-composition:rsm')) %}
