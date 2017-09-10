@@ -1,0 +1,43 @@
+//current
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+var cfg_warn = {{ cfg.warn }}
+var cfg_crit = {{ cfg.crit }}
+var cfg_by = {{ cfg.by }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''SELECT max("drive1_current") AS "value" FROM "{{ db }}"."autogen"."trserver" ''')
+    .period(cfg_period)
+    .every(cfg_every)
+    .groupBy(cfg_by)
+ 
+  |alert()
+    .message('')
+    .warn(lambda: "value" > cfg_warn)
+    .crit(lambda: "value" > cfg_crit)
+    .id('current')
+    .idTag('id')
+    .levelTag('level')
+{%- if cfg.log is defined %}
+    .log(cfg_log)
+{%- endif %}
+ 
+  |eval(lambda: if ("value" > cfg_crit, 2, 0), lambda: if ("value" > cfg_warn, 1, 0), lambda: "isCrit"+"isWarn", lambda: "value")
+    .as('isCrit','isWarn','Ilevel','data')
+    .keep('Ilevel','data')
+    
+  |where(lambda: "id" != '')
+   
+  |influxDBOut()
+    .database('{{ db }}')
+    .retentionPolicy('autogen')
+    .measurement('alert')
+    .tag('tracker', cfg_tracker)
+	
+	

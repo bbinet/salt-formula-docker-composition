@@ -1,0 +1,43 @@
+//GENERAL_{{ cfg.id }}
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_email = '{{ cfg.email }}'
+//var cfg_id = '{{ cfg.id }}'
+//var cfg_link = '{{ cfg.link }}'
+
+batch
+
+  |query('''SELECT 
+	"data","Ilevel","tracker"
+        FROM "{{ db }}"."autogen"."alert" WHERE "id"='{{ cfg.id }}'
+	''')
+    .period(cfg_period)
+    .every(cfg_every)
+
+  |alert()
+    .id('GENERAL_{{ cfg.id }}')
+    .message('{{ db }} {% raw %}{{ .Level }}{% endraw %} alert')
+    .warn(lambda: "Ilevel" == 1)
+    .crit(lambda: "Ilevel" == 3)
+    .messageField('message')
+    .stateChangesOnly(24h)
+{%- if cfg.log is defined %}
+    .log(cfg_log)
+{%- endif %}
+    .details('
+<h1>{% raw %}{{ .Level }}{% endraw %} alert: {{ cfg.id }}</h1>
+<div>
+<p>Value: {% raw %}{{index .Fields "data"}}{% endraw %}</p> 
+<p>Tracker: {% raw %}{{ index .Fields "tracker" }}{% endraw %}</p>
+</div>
+<div>
+Link to Grafana panel: {{ cfg.link }}
+</div>
+    ')
+    .email(cfg_email)
+
+

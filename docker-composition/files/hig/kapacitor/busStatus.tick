@@ -1,0 +1,39 @@
+//busStatus
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+var cfg_cste = {{ cfg.cste }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''SELECT "master_busStatus" AS "value" FROM "{{ db }}"."autogen"."trserver"''')
+    .period(cfg_period)
+    .every(cfg_every)
+    
+  |alert()
+    .crit(lambda: "value"!=cfg_cste)
+    .message('')
+    .id('busStatus')
+    .idTag('id')
+    .levelTag('level')
+{%- if cfg.log is defined %}
+    .log('{{ cfg.log }}')
+{%- endif %}
+   
+  |eval(lambda: if ("value"!=cfg_cste, 3, 0), lambda: "value")
+    .as('Ilevel','data')
+    .keep('Ilevel','data')
+    
+  |where(lambda: "id" != '') 
+  
+  |influxDBOut()
+    .database('{{ db }}')
+    .retentionPolicy('autogen')
+    .measurement('alert')
+    .tag('tracker', cfg_tracker)
+
+

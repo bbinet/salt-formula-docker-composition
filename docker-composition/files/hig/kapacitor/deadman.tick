@@ -1,0 +1,40 @@
+//deadman
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+var cfg_points = {{ cfg.points }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''
+        SELECT "mode"
+        FROM "{{ db }}"."autogen"."trserver"
+    	''')
+      .period(cfg_period)
+      .every(cfg_every)
+      
+  |deadman(cfg_points, cfg_period)
+      .id('deadman')
+      .idTag('id')
+      .levelTag('level')
+{%- if cfg.log is defined %}
+      .log(cfg_log)
+{%- endif %}
+      
+  |eval(lambda: 3, lambda: "emitted")
+      .as('Ilevel','emitted')
+      .keep('Ilevel','emitted')
+      
+  |where(lambda: "id" != '')
+   
+  |influxDBOut()
+      .database('{{ db }}')
+      .retentionPolicy('autogen')
+      .measurement('alert')
+      .tag('tracker', cfg_tracker)
+	
+

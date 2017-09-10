@@ -1,0 +1,43 @@
+//Isensor
+
+var cfg_period = {{ cfg.period }}
+var cfg_every = {{ cfg.every }}
+var cfg_by = {{ cfg.by }}
+var cfg_warn = {{ cfg.warn }}
+var cfg_crit = {{ cfg.crit }}
+{%- if cfg.log is defined %}
+var cfg_log = '{{ cfg.log }}'
+{%- endif %}
+var cfg_tracker = '{{ cfg.tracker }}'
+
+batch
+
+  |query('''SELECT mean("Isensor1")-mean("Isensor2") AS "value" FROM "{{ db }}"."autogen"."trserver"''')
+    .period(cfg_period)
+    .every(cfg_every)
+    .groupBy(cfg_by)
+
+  |alert()
+    .warn(lambda: ("value" > cfg_warn OR "value" < -cfg_warn))
+    .crit(lambda: ("value" > cfg_crit OR "value" < -cfg_crit))
+    .message('')
+    .id('Isensor')
+    .idTag('id')
+    .levelTag('level')
+{%- if cfg.log is defined %}
+    .log(cfg_log)
+{%- endif %}
+
+  |eval(lambda: if (("value" > cfg_crit OR "value" < -cfg_crit), 2, 0), lambda: if (("value" > cfg_warn OR "value" < -cfg_warn), 1, 0), lambda: "isCrit"+"isWarn", lambda: "value")
+    .as('isCrit','isWarn','Ilevel','data')
+	.keep('Ilevel','data') 
+
+  |where(lambda: "id" != '') 
+
+  |influxDBOut()
+    .database('{{ db }}')
+    .retentionPolicy('autogen')
+    .measurement('alert')
+    .tag('tracker', cfg_tracker)
+
+
