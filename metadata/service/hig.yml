@@ -8,12 +8,14 @@ parameters:
         services:
           influxdb:
             hostname: influxdb
-            image: bbinet/influxdb:v1.2.0
+            image: influxdb:1.4.2
             environment:
-              ROOT_PASSWORD: root
+              INFLUXDB_HTTP_AUTH_ENABLED: "true"
+              INFLUXDB_ADMIN_USER: "root"
+              INFLUXDB_ADMIN_PASSWORD: "root"
           grafana:
             hostname: grafana
-            image: grafana/grafana:4.6.0
+            image: grafana/grafana:4.6.2
             environment:
               GF_SECURITY_ADMIN_PASSWORD: "admin"
               GF_USERS_ALLOW_SIGN_UP: "false"
