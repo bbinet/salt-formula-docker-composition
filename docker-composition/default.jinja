@@ -39,6 +39,11 @@
 {%- if secretcfg.mode is defined %}
     - mode: {{ secretcfg.mode }}
 {%- endif %}
+{%- if secretcfg.dir_mode is defined %}
+    - dir_mode: {{ secretcfg.dir_mode }}
+{%- else %}
+    - dir_mode: 0755
+{%- endif %}
 {%- if secretcfg.pillar is defined %}
     - contents_pillar: {{ secretcfg.pillar }}
 {%- elif secretcfg.contents is defined  %}
