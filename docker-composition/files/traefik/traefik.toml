@@ -236,6 +236,8 @@ onDemand = {{ acme.get('onDemand', 'true') }}
   {%- endif %}
 {%- endfor %}
 
+[acme.httpChallenge]
+  entryPoint = "http"
 {%- endif %}
 
 # Entrypoints definition
