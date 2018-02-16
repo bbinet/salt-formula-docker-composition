@@ -1,6 +1,7 @@
 parameters:
   docker-composition:
     traefik:
+      type: traefik
       enabled: true
       conf:
         docker:

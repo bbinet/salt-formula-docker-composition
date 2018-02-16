@@ -1,7 +1,9 @@
 parameters:
   docker-composition:
     registry:
+      type: generic
       enabled: true
+
       compose:
         version: '3.1'
         services:

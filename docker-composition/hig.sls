@@ -1,6 +1,5 @@
-{%- from "docker-composition/map.jinja" import cfg, hig as composition with context %}
-{%- set cname = 'hig' %}
-{%- set cpath = cfg.base + '/compose/' + cname %}
+{%- set ctype = 'hig' %}
+
 {%- extends "docker-composition/default.jinja" %}
 
 {%- block main %}
@@ -9,7 +8,7 @@
 {%- if dircfg.hsconfig is defined %}
 {{ cpath }}/{{ dir }}/etc_hindsight/hindsight.cfg:
   file.managed:
-    - source: salt://docker-composition/files/{{ cname }}/hindsight/hindsight.cfg
+    - source: salt://docker-composition/files/{{ ctype }}/hindsight/hindsight.cfg
     - template: jinja
     - context:
       hs: {{ dircfg.hsconfig|json }}
@@ -19,7 +18,7 @@
 
 {{ cpath }}/{{ dir }}/etc_hindsight/modules:
   file.recurse:
-    - source: salt://docker-composition/files/{{ cname }}/hindsight/modules
+    - source: salt://docker-composition/files/{{ ctype }}/hindsight/modules
     - clean: True
     - require_in:
       - file: {{ cpath }}/{{ dir }}
@@ -43,7 +42,7 @@
 {%- endif %}
 {{ cpath }}/{{ dir }}/etc_hindsight/run/{{ ptype }}/{{ pname }}.cfg:
   file.managed:
-    - source: salt://docker-composition/files/{{ cname }}/hindsight/run/{{ ptype }}/{{ plugin }}.cfg
+    - source: salt://docker-composition/files/{{ ctype }}/hindsight/run/{{ ptype }}/{{ plugin }}.cfg
     - template: jinja
     - makedirs: True
     - context:
@@ -55,7 +54,7 @@
 {%- for plugin in plugins %}
 {{ cpath }}/{{ dir }}/etc_hindsight/run/{{ ptype }}/{{ plugin }}.lua:
   file.managed:
-    - source: salt://docker-composition/files/{{ cname }}/hindsight/run/{{ ptype }}/{{ plugin }}.lua
+    - source: salt://docker-composition/files/{{ ctype }}/hindsight/run/{{ ptype }}/{{ plugin }}.lua
     - makedirs: True
     - require_in:
       - file: {{ cpath }}/{{ dir }}/etc_hindsight/run/{{ ptype }}

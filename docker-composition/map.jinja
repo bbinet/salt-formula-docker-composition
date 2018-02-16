@@ -7,28 +7,3 @@ vim: syntax=sls
         'base': salt['grains.get']('root', '/etc/docker/compose'),
     }
 }, merge=salt['pillar.get']('docker-composition:cfg')) %}
-
-{%- set traefik = salt['grains.filter_by']({
-    'Debian': {
-    }
-}, merge=salt['pillar.get']('docker-composition:traefik')) %}
-
-{%- set saltstack = salt['grains.filter_by']({
-    'Debian': {
-    }
-}, merge=salt['pillar.get']('docker-composition:saltstack')) %}
-
-{%- set hig = salt['grains.filter_by']({
-    'Debian': {
-    }
-}, merge=salt['pillar.get']('docker-composition:hig')) %}
-
-{%- set rsm = salt['grains.filter_by']({
-    'Debian': {
-    }
-}, merge=salt['pillar.get']('docker-composition:rsm')) %}
-
-{%- set registry = salt['grains.filter_by']({
-    'Debian': {
-    }
-}, merge=salt['pillar.get']('docker-composition:registry')) %}

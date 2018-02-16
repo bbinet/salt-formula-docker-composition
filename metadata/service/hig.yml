@@ -1,6 +1,7 @@
 parameters:
   docker-composition:
     hig:
+      type: hig
       enabled: true
 
       compose:

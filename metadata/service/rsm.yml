@@ -1,7 +1,9 @@
 parameters:
   docker-composition:
     rsm:
+      type: generic
       enabled: true
+
       compose:
         version: '3.1'
         services:

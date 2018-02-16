@@ -1,7 +1,9 @@
 parameters:
   docker-composition:
     saltstack:
+      type: generic
       enabled: true
+
       directory:
         saltmaster:
           clean: false

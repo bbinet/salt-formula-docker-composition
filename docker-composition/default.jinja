@@ -1,7 +1,13 @@
-{%- if composition.enabled %}
+{%- from "docker-composition/map.jinja" import cfg with context %}
+
+{%- for cname, composition in salt['pillar.get']('docker-composition', {}).iteritems() %}
+{%- set cpath = cfg.base + '/compose/' + cname %}
+
+{%- if composition is mapping and composition.get('enabled') and composition.get('type') == ctype %}
 
 {%- if composition.compose is defined %}
-{%- block compose %}
+
+{%- block compose scoped %}
 {{ cpath }}:
   file.directory:
     - makedirs: True
@@ -20,7 +26,7 @@
 {%- endif %}
 
 {%- if composition.secret is defined %}
-{%- block secret %}
+{%- block secret scoped %}
 {{ cpath }}/secrets:
   file.directory:
     - makedirs: True
@@ -62,7 +68,7 @@
 {%- endif %}
 
 {%- if composition.directory is defined %}
-{%- block directory %}
+{%- block directory scoped %}
 {%- for dir, dircfg in composition.directory.iteritems() %}
 {{ cpath }}/{{ dir }}:
   file.directory:
@@ -90,6 +96,7 @@
 {%- endblock directory %}
 {%- endif %}
 
-{%- block main %}{%- endblock main %}
+{%- block main scoped %}{%- endblock main %}
 
 {%- endif %}
+{%- endfor %}
