@@ -28,7 +28,7 @@ parameters:
               - influxdb
           hindsight:
             hostname: hindsight
-            image: bbinet/hindsight:v0.14.3-hl1
+            image: bbinet/hindsight:v0.14.7-hl1
             command: /etc/hindsight/hindsight.cfg
             stop_signal: SIGINT
             volumes:
