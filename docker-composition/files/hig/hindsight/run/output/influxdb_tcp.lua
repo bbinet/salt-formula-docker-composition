@@ -147,8 +147,10 @@ local function send_request() -- hand coded since socket.http doesn't support ke
             local response = table.concat(body)
             local ok, doc = pcall(rjson.parse, response)
             if ok then
-                -- parsing json ok
-                print(">>> InfluxDB response body:", response)
+                if doc:value(doc:find("error")) then
+                    ret = -1
+                    err = string.format("InfluxDB server reported errors processing the submission: %s", doc:value(doc:find("error")))
+                end
             else
                 ret = -1
                 err = string.format(
