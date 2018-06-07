@@ -5,13 +5,13 @@ parameters:
       enabled: true
       conf:
         docker:
-          exposedbydefault: "false"
+          exposedByDefault: "false"
       compose:
         version: '3.1'
         services:
           traefik:
-            hostname: saltmaster
-            image: traefik:v1.5.0-rc5
+            hostname: traefik
+            image: traefik:v1.6.3
             command: -c /traefik.toml
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
