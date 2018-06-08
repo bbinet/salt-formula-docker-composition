@@ -35,7 +35,25 @@
       - file: {{ cpath }}
 {%- for secret, secretcfg in composition.secret.iteritems() %}
 {{ cpath }}/secrets/{{ secret }}:
+{%- if secretcfg.serialize is defined %}
+  file.serialize:
+    - formatter: {{ secretcfg.serialize }}
+  {%- if secretcfg.pillar is defined %}
+    - dataset_pillar: {{ secretcfg.pillar }}
+  {%- elif secretcfg.contents is defined  %}
+    - dataset: {{ secretcfg.contents | yaml }}
+  {%- endif %}
+{%- else %}
   file.managed:
+  {%- if secretcfg.pillar is defined %}
+    - contents_pillar: {{ secretcfg.pillar }}
+  {%- elif secretcfg.contents is defined  %}
+    - contents: {{ secretcfg.contents | yaml }}
+  {%- else %}
+    - contents: {{ secretcfg | yaml }}
+  {%- endif %}
+    - contents_newline: True
+{%- endif %}
 {%- if secretcfg.user is defined %}
     - user: {{ secretcfg.user }}
 {%- endif %}
@@ -50,16 +68,6 @@
 {%- else %}
     - dir_mode: 0755
 {%- endif %}
-{%- if secretcfg.pillar is defined %}
-    - contents_pillar: {{ secretcfg.pillar }}
-{%- elif secretcfg.contents is defined  %}
-    - contents: |
-        {{ secretcfg.contents | indent(8) }}
-{%- else %}
-    - contents: |
-        {{ secretcfg | indent(8) }}
-{%- endif %}
-    - contents_newline: True
     - makedirs: True
     - require_in:
       - file: {{ cpath }}/secrets

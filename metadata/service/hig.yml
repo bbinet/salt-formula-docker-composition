@@ -50,6 +50,3 @@ parameters:
             output_defaults:
               read_queue: analysis
               shutdown_on_terminate: "false"
-            plugins:
-              input:
-                prune_input: {}
