@@ -14,11 +14,10 @@
     - clean: True
 
 {{ cpath }}/docker-compose.yml:
-  file.managed:
+  file.serialize:
+    - formatter: yaml
     # docker-compose cfg is managed in pillar so it is easily overridable
-    - contents: |
-        {{ composition.compose | yaml(False) | indent(8) }}
-    - contents_newline: True
+    - dataset: {{ composition.compose | json }}
     - makedirs: True
     - require_in:
       - file: {{ cpath }}
@@ -41,16 +40,16 @@
   {%- if secretcfg.pillar is defined %}
     - dataset_pillar: {{ secretcfg.pillar }}
   {%- elif secretcfg.contents is defined  %}
-    - dataset: {{ secretcfg.contents | yaml }}
+    - dataset: {{ secretcfg.contents | json }}
   {%- endif %}
 {%- else %}
   file.managed:
   {%- if secretcfg.pillar is defined %}
     - contents_pillar: {{ secretcfg.pillar }}
   {%- elif secretcfg.contents is defined  %}
-    - contents: {{ secretcfg.contents | yaml }}
+    - contents: {{ secretcfg.contents | json }}
   {%- else %}
-    - contents: {{ secretcfg | yaml }}
+    - contents: {{ secretcfg | json }}
   {%- endif %}
     - contents_newline: True
 {%- endif %}
