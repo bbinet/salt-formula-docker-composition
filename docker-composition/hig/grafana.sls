@@ -1,3 +1,5 @@
+{%- from "docker-composition/map.jinja" import cfg with context %}
+
 {%- set ctype = 'hig' %}
 
 {%- for cname, composition in salt['pillar.get']('docker-composition', {}).iteritems() %}
@@ -11,13 +13,14 @@
 {#{%- set profile = 'docker-composition:' + cname + ':custom:' + cus + ':grafana:client' %}#}
 {%- set client = cuscfg.grafana.get('client') %}
 
+
 {%- for name, user in cuscfg.grafana.get('users', {}).items() %}
 grafana4_user_{{ name }}:
   {%- if user %}
   grafana4_user.present:
     - name: "{{ name }}"
-    - password: "{{ user['password'] }}"
-    - email: "{{ user['email'] }}"
+    - password: "{{ user.password }}"
+    - email: "{{ user.email }}"
     - is_admin: {{ user.get('is_admin', False) }}
     {%- for item in ('fullname', 'theme') %}
     {%- if item in user %}
@@ -73,8 +76,8 @@ grafana4_datasource_{{ orgname }}_{{ name }}:
     {%- endif %}
   grafana4_datasource.present:
     - name: {{ name }}
-    - type: "{{ ds['type'] }}"
-    - url: "{{ ds['url'] }}"
+    - type: "{{ ds.type }}"
+    - url: "{{ ds.url }}"
     {%- for item in ('database', 'user', 'password', 'access', 'basic_auth_user', 'basic_auth_password') %}
     {%- if item in ds %}
     - {{ item }}: "{{ ds[item] }}"
@@ -94,16 +97,66 @@ grafana4_datasource_{{ orgname }}_{{ name }}:
     - require:
       - grafana4_org: grafana4_org_{{ orgname }}
 {%- endfor %}
-{#{%- for name, dash in org.get('dashboards', {}).items() %}
+{%- for name, dash in org.get('dashboards', {}).items() %}
 grafana4_dashboard_{{ orgname }}_{{ name }}:
   {%- if dash %}
+    {%- if dash is string %}
+      {%- set dash = cuscfg.grafana | traverse('dashboards:%s'% dash) %}
+    {%- endif %}
   grafana4_dashboard.present:
-    - name: {{ name }}
-    {%- if dash.get('dashboard_file') %}
-    {%- import_json dash.dashboard_file as dashboard %}
+    - name: {{ name | lower }}
+    {%- if dash.type == 'file' %}
+    {%- import_json dash.data as dashboard %}
     - dashboard: {{ dashboard | json }}
-    {%- else %}
-    - dashboard: {{ dash['dashboard'] | json }}
+    {%- elif dash.type == 'hlonnet' %}
+{%- set hlonnet = dash %}
+{%- set panels_cfg = hlonnet.get('panels', {}) %}
+{%- if hlonnet.get('inherit') %}
+  {%- set hlonnet = dict(cuscfg.grafana | traverse('dashboards:%s'% hlonnet.inherit, {}), **hlonnet) %}
+  {%- set panels_cfg = dict(cuscfg.grafana | traverse('dashboards:%s:panels'% hlonnet.inherit, {}), **hlonnet.get('panels', {})) %}
+{%- endif %}
+{%- set panels = [] %}
+{%- for _, line in panels_cfg | dictsort %}
+  {%- if line %}
+    {%- do panels.append(line) %}
+  {%- endif %}
+{%- endfor %}
+{%- set hl = "
+local hl = import 'hlonnet/helioslite.libsonnet';
+hl.dashboard.new(
+  '%s',
+  refresh='%s',
+  editable=%s,
+  time_from='%s',
+  tags=%r,
+  templates=%r,
+  annotations=%r,
+  panels=%r,
+  h=%d,
+)" % (
+  name,
+  hlonnet.get('refresh', '1m'),
+  "true" if hlonnet.editable else "false",
+  hlonnet.get('time_from', 'now-2d'),
+  hlonnet.get('tags', ['helioslite', 'generated']),
+  hlonnet.get('templates', []),
+  hlonnet.get('annotations', []),
+  panels,
+  hlonnet.get('height', 8),
+  ) %}
+{%- set jsonnet_lpaths = [] %}
+{%- for lp in cuscfg.grafana | traverse('jsonnet.library_paths', salt['config.option']('jsonnet.library_paths', [])) %}
+  {%- do jsonnet_lpaths.append(lp if lp.startswith('/') else '/'.join([cfg.base, lp])) %}
+{%- endfor %}
+    - dashboard: {{ salt['jsonnet.evaluate'](hl, jsonnet_lpaths) | json }}
+    {%- elif dash.type == 'jsonnet' %}
+{%- set jsonnet_lpaths = [] %}
+{%- for lp in cuscfg.grafana | traverse('jsonnet.library_paths', salt['config.option']('jsonnet.library_paths', [])) %}
+  {%- do jsonnet_lpaths.append(lp if lp.startswith('/') else '/'.join([cfg.base, lp])) %}
+{%- endfor %}
+    - dashboard: {{ salt['jsonnet.evaluate'](dash.data) | json }}
+    {%- elif dash.type == 'yaml' %}
+    - dashboard: {{ dash.data | json }}
       {%- for item in ('base_dashboards_from_pillar', 'base_panels_from_pillar', 'base_rows_from_pillar') %}
         {%- if item in dash %}
     - {{ item }}: {{ dash[item] }}
@@ -112,7 +165,7 @@ grafana4_dashboard_{{ orgname }}_{{ name }}:
     {%- endif %}
   {%- else %}
   grafana4_dashboard.absent:
-    - name: {{ name }}
+    - name: {{ name | lower }}
   {%- endif %}
       {%- if client %}
     - profile: {{ client | json }}
@@ -120,7 +173,7 @@ grafana4_dashboard_{{ orgname }}_{{ name }}:
     - orgname: {{ orgname }}
     - require:
       - grafana4_org: grafana4_org_{{ orgname }}
-{%- endfor %}#}
+{%- endfor %}
 {%- endfor %}
 
 {%- endif %}
