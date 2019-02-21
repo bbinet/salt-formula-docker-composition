@@ -18,12 +18,13 @@ parameters:
             hostname: grafana
             image: grafana/grafana:5.4.3
             environment:
-              GF_SECURITY_ADMIN_PASSWORD: "admin"
+              GF_SECURITY_ADMIN_PASSWORD: admin
               GF_USERS_ALLOW_SIGN_UP: "false"
               GF_USERS_ALLOW_ORG_CREATE: "false"
               GF_USERS_AUTO_ASSIGN_ORG: "false"
-              GF_USERS_AUTO_ASSIGN_ORG_ROLE: "Editor"
+              GF_USERS_AUTO_ASSIGN_ORG_ROLE: Editor
               GF_LOG_LEVEL: Info
+              GF_EXTERNAL_IMAGE_STORAGE_PROVIDER: local
             depends_on:
               - influxdb
           hindsight:
