@@ -1,0 +1,12 @@
+parameters:
+  docker-composition:
+    rrsync:
+      type: generic
+      enabled: true
+
+      compose:
+        version: '3.1'
+        services:
+          rrsync:
+            hostname: rrsync
+            image: bbinet/rrsync:latest
