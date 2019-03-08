@@ -8,7 +8,7 @@
     - source: salt://docker-composition/files/{{ ctype }}/traefik.toml
     - template: jinja
     - context:
-        conf: {{ composition.conf }}
+        conf: {{ composition.conf | json }}
     - makedirs: True
     - require_in:
       - file: {{ cpath }}
