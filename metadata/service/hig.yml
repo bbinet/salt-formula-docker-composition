@@ -8,7 +8,7 @@ parameters:
         version: '3.1'
         services:
           influxdb:
-            image: influxdb:1.7.4
+            image: influxdb:1.7.6
             hostname: influxdb
             environment:
               INFLUXDB_HTTP_AUTH_ENABLED: "true"
@@ -16,7 +16,7 @@ parameters:
               INFLUXDB_ADMIN_PASSWORD: "root"
           grafana:
             hostname: grafana
-            image: grafana/grafana:6.0.1
+            image: grafana/grafana:6.1.4
             environment:
               GF_SECURITY_ADMIN_PASSWORD: admin
               GF_USERS_ALLOW_SIGN_UP: "false"
