@@ -15,12 +15,35 @@ influxdb_database_{{ name }}:
   {%- if cfg %}
   influxdb_database.present:
     - name: "{{ name }}"
+    {%- if client %}
+    - influxdb_host: {{ client.influxdb_host }}
+    - influxdb_port: {{ client.influxdb_port }}
+    - influxdb_user: {{ client.influxdb_user }}
+    - influxdb_password: {{ client.influxdb_password }}
+    {%- endif %}
+    {%- set rps = salt['slsutil.merge'](cuscfg.influxdb | traverse('defaults:retention_policies', {}), cfg.get('rp', {})) %}
+    {%- for rp_name, rp in rps.items() %}
+influxdb_database_{{ name }}_rp_{{ rp_name }}:
+      {%- if rp %}
+  influxdb_retention_policy.present:
+    - duration: {{ rp.get('duration', 'INF') }}
+    - replication: {{ rp.get('replication', 1) }}
+    - default: {{ rp.get('default', False) }}
+    - shard_duration: {{ rp.get('shard_duration', '0s') }}
+      {%- else %}
+  influxdb_retention_policy.absent:
+      {%- endif %}
+    - name: {{ rp_name }}
+    - database: {{ name }}
       {%- if client %}
     - influxdb_host: {{ client.influxdb_host }}
     - influxdb_port: {{ client.influxdb_port }}
     - influxdb_user: {{ client.influxdb_user }}
     - influxdb_password: {{ client.influxdb_password }}
       {%- endif %}
+    - require:
+      - influxdb_database: influxdb_database_{{ name }}
+    {%- endfor %}
     {%- if cfg.get('ro_password', False) %}
 influxdb_database_{{ name }}_user_{{ name }}_ro:
   influxdb_user.present:
