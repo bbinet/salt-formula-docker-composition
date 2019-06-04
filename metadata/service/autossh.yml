@@ -1,0 +1,12 @@
+parameters:
+  docker-composition:
+    autossh:
+      type: generic
+      enabled: true
+
+      compose:
+        version: '3.1'
+        services:
+          ssh:
+            hostname: autossh
+            image: bbinet/autossh:latest
