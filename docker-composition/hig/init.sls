@@ -4,7 +4,7 @@
 
 {%- block main %}
 {%- if composition.directory is defined %}
-{%- for dir, dircfg in composition.directory.iteritems() %}
+{%- for dir, dircfg in composition.directory.items() %}
 {%- if dircfg.hsconfig is defined %}
 {{ cpath }}/{{ dir }}/etc_hindsight/hindsight.cfg:
   file.managed:
@@ -24,7 +24,7 @@
       - file: {{ cpath }}/{{ dir }}
 
 {%- set plugin = salt['slsutil.update']({"input": {}, "analysis": {}, "output": {}, "module": {}}, dircfg.get('plugin', {})) %}
-{%- for mname, mcfg in plugin.module.iteritems() %}
+{%- for mname, mcfg in plugin.module.items() %}
   {%- if mcfg and mcfg.get('source_lua') %}
 {{ cpath }}/{{ dir }}/etc_hindsight/modules/{{ mname }}.lua:
   file.managed:
@@ -51,7 +51,7 @@
       - file: {{ cpath }}/{{ dir }}
       - file: {{ cpath }}/{{ dir }}/etc_hindsight/hindsight.cfg
 
-{%- for pname, pcfg in plugin[ptype].iteritems() %}
+{%- for pname, pcfg in plugin[ptype].items() %}
   {%- if pcfg and pcfg.get('source_lua') %}
 {{ cpath }}/{{ dir }}/etc_hindsight/run/{{ ptype }}/{{ pname }}.lua:
   file.managed:
@@ -63,7 +63,7 @@
 {%- endfor %}
 
 {%- set plugins = salt['slsutil.update']({"input": {}, "analysis": {}, "output": {}}, dircfg.hsconfig.get('plugins', {})) %}
-{%- for cfgname, cfg in plugins[ptype].iteritems() if cfg != False %}
+{%- for cfgname, cfg in plugins[ptype].items() if cfg != False %}
 {%- set pname = cfg.get('lua_plugin', cfgname) %}
 {%- set pcfg = plugin[ptype][pname] %}
 {{ cpath }}/{{ dir }}/etc_hindsight/run/{{ ptype }}/{{ cfgname }}.cfg:

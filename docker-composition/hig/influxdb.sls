@@ -1,11 +1,11 @@
 {%- set ctype = 'hig' %}
 
-{%- for cname, composition in salt['pillar.get']('docker-composition', {}).iteritems() %}
+{%- for cname, composition in salt['pillar.get']('docker-composition', {}).items() %}
 
 {%- if composition is mapping and composition.get('enabled') and composition.get('type') == ctype %}
 
 {%- if composition.custom is defined %}
-{%- for cus, cuscfg in composition.custom.iteritems() %}
+{%- for cus, cuscfg in composition.custom.items() %}
 {%- if cuscfg.influxdb is defined %}
 
 {%- set client = cuscfg.influxdb.get('client') %}
