@@ -48,7 +48,7 @@ influxdb_database_{{ name }}_rp_{{ rp_name }}:
 influxdb_database_{{ name }}_user_{{ name }}_ro:
   influxdb_user.present:
     - name: "{{ name }}_ro"
-    - password: "{{ cfg['ro_password'] }}"
+    - passwd: "{{ cfg.ro_password }}"
     - grants:
         {{ name }}: read
       {%- if client %}
@@ -64,7 +64,7 @@ influxdb_database_{{ name }}_user_{{ name }}_ro:
 influxdb_database_{{ name }}_user_{{ name }}_rw:
   influxdb_user.present:
     - name: "{{ name }}_rw"
-    - password: "{{ cfg['rw_password'] }}"
+    - passwd: "{{ cfg.rw_password }}"
     - grants:
         {{ name }}: write
     - require:
@@ -87,7 +87,7 @@ influxdb_user_{{ name }}:
   {%- if user %}
   influxdb_user.present:
     - name: "{{ name }}"
-    - password: "{{ user['password'] }}"
+    - passwd: "{{ user.password }}"
     - admin: {{ user.get('admin', False) }}
     - grants: {{ user.get('grants', {}) | json }}
   {%- else %}
