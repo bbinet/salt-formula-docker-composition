@@ -7,24 +7,26 @@ parameters:
       directory:
         saltmaster:
           clean: false
-          yamlfile:
+          file:
             etc_salt_master.d/helioslite.conf:
-              file_roots:
-                base:
-                  - /srv/setupify/states
-              reclass: &reclass
-                storage_type: yaml_fs
-                inventory_base_uri: /srv/setupify/reclass
-              ext_pillar:
-                - reclass: *reclass
-              master_tops:
-                reclass: *reclass
-              file_ignore_glob:
-                - '*.git*'
-                - '*.pyc'
-                - '*.swp'
-              log_level: error
-              log_level_logfile: quiet
+              serialize: yaml
+              contents:
+                file_roots:
+                  base:
+                    - /srv/setupify/states
+                reclass: &reclass
+                  storage_type: yaml_fs
+                  inventory_base_uri: /srv/setupify/reclass
+                ext_pillar:
+                  - reclass: *reclass
+                master_tops:
+                  reclass: *reclass
+                file_ignore_glob:
+                  - '*.git*'
+                  - '*.pyc'
+                  - '*.swp'
+                log_level: error
+                log_level_logfile: quiet
 
       compose:
         version: '3.1'

@@ -87,8 +87,8 @@
 {%- if dircfg.file is defined %}
 {%- for file, filecfg in dircfg.file.items() %}
 {{ cpath }}/{{ dir }}/{{ file }}:
-{%- if file.serialize is defined %}
-  filecfg.serialize:
+{%- if filecfg.serialize is defined %}
+  file.serialize:
     - formatter: {{ filecfg.serialize }}
   {%- if filecfg.contents is defined  %}
     - dataset: {{ filecfg.contents|json }}
@@ -114,11 +114,15 @@
     {%- elif filecfg.contents_grains is defined %}
     - contents_grains: {{ filecfg.contents_grains }}
     {%- endif %}
-    - contents_newline: {{ filecfg.get('contents_newline', 'True') }}
 {%- endif %}
+    - contents_newline: {{ filecfg.get('contents_newline', 'True') }}
     - makedirs: {{ filecfg.get('makedirs', 'True') }}
-    - user: {{ filecfg.get('user', 'root') }}
-    - group: {{ filecfg.get('group', 'root') }}
+    {%- if filecfg.user is defined %}
+    - user: {{ filecfg.user }}
+    {%- endif %}
+    {%- if filecfg.group is defined %}
+    - group: {{ filecfg.group }}
+    {%- endif %}
     {%- if filecfg.mode is defined %}
     - mode: {{ filecfg.mode }}
     {%- endif %}
@@ -133,22 +137,6 @@
 {%- endfor %}
 {%- endif %}
 
-{%- if dircfg.yamlfile is defined %}
-{%- for yamlfile, yamlfilecfg in dircfg.yamlfile.items() %}
-{{ cpath }}/{{ dir }}/{{ yamlfile }}:
-  file.serialize:
-    - formatter: yaml
-{%- if yamlfilecfg.pillar is defined %}
-    - dataset_pillar: {{ yamlfilecfg.pillar }}
-{%- else %}
-    - dataset: {{ yamlfilecfg | json }}
-{%- endif %}
-    - contents_newline: True
-    - makedirs: True
-    - require_in:
-      - file: {{ cpath }}/{{ dir }}
-{%- endfor %}
-{%- endif %}
 {%- endfor %}
 {%- endblock directory %}
 {%- endif %}
