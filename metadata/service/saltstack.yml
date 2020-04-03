@@ -11,16 +11,6 @@ parameters:
             etc_salt_master.d/helioslite.conf:
               serialize: yaml
               contents:
-                file_roots:
-                  base:
-                    - /srv/setupify/states
-                reclass: &reclass
-                  storage_type: yaml_fs
-                  inventory_base_uri: /srv/setupify/reclass
-                ext_pillar:
-                  - reclass: *reclass
-                master_tops:
-                  reclass: *reclass
                 file_ignore_glob:
                   - '*.git*'
                   - '*.pyc'
