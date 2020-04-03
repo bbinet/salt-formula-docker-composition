@@ -33,6 +33,6 @@ parameters:
         services:
           saltmaster:
             hostname: saltmaster
-            image: bbinet/salt-master:stretch_2019.2
+            image: bbinet/salt-master:buster_2019.2
             volumes:
               - ./saltmaster/etc_salt_master.d:/etc/salt/master.d
