@@ -1,0 +1,41 @@
+parameters:
+  docker-composition:
+    traefik:
+      type: generic
+      enabled: true
+
+      directory:
+        traefik:
+          clean: true
+          file:
+            etc_traefik/traefik.yml:
+              serialize: yaml
+              contents:
+                global:
+                  checkNewVersion: true
+                  sendAnonymousUsage: true
+                entryPoints:
+                  web:
+                    address: ":80"
+                providers:
+                  providersThrottleDuration: 2s
+                  docker:
+                    watch: true
+                    endpoint: unix:///var/run/docker.sock
+                    swarmMode: false
+                    exposedByDefault: false
+                api:
+                  insecure: true
+                  dashboard: true
+                log:
+                  level: ERROR
+
+      compose:
+        version: '3.1'
+        services:
+          traefik:
+            hostname: traefik
+            image: traefik:v2.2.0
+            volumes:
+              - /var/run/docker.sock:/var/run/docker.sock
+              - ./traefik/etc_traefik/traefik.yml:/etc/traefik/traefik.yml
