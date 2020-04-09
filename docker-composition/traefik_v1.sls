@@ -1,4 +1,4 @@
-{%- set ctype = 'traefik' %}
+{%- set ctype = 'traefik_v1' %}
 
 {%- extends "docker-composition/default.jinja" %}
 

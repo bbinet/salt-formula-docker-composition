@@ -1,7 +1,7 @@
 parameters:
   docker-composition:
-    traefik:
-      type: traefik
+    traefik_v1:
+      type: traefik_v1
       enabled: true
       conf:
         docker:
@@ -9,9 +9,9 @@ parameters:
       compose:
         version: '3.1'
         services:
-          traefik:
-            hostname: traefik
-            image: traefik:v1.7.9
+          traefik_v1:
+            hostname: traefik_v1
+            image: traefik:v1.7.24
             command: -c /traefik.toml
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
