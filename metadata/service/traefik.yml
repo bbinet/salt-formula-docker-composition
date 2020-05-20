@@ -35,7 +35,7 @@ parameters:
         services:
           traefik:
             hostname: traefik
-            image: traefik:v2.2.0
+            image: traefik:v2.2.1
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
               - ./traefik/etc_traefik/traefik.yml:/etc/traefik/traefik.yml
