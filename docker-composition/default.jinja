@@ -106,6 +106,12 @@
     {%- endif %}
     {%- if filecfg.template is defined %}
     - template: {{ filecfg.template }}
+    {%- if filecfg.defaults is defined %}
+    - defaults: {{ filecfg.defaults|json }}
+    {%- endif %}
+    {%- if filecfg.context is defined %}
+    - context: {{ filecfg.context|json }}
+    {%- endif %}
     {%- endif %}
     {%- elif filecfg.contents is defined %}
     - contents: {{ filecfg.contents|json }}
