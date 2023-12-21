@@ -1,0 +1,12 @@
+parameters:
+  docker-composition:
+    acs:
+      type: generic
+      enabled: true
+
+      compose:
+        version: '3.1'
+        services:
+          ssh:
+            hostname: acs
+            image: bbinet/acs_helloasso_invoicing:latest
