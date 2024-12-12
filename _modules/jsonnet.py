@@ -64,7 +64,7 @@ def _try_path(dir, rel, lpaths):
 def _import_callback(dir, rel, library_paths):
     full_path, content = _try_path(dir, rel, lpaths=library_paths)
     if content:
-        return str(full_path), str(content)
+        return str(full_path), bytes(content, 'utf-8')
     raise RuntimeError('File not found')
 
 
