@@ -73,6 +73,7 @@ _PINNED_ROWS_PILLAR = "grafana_pinned_rows"
 
 def present(
     name,
+    search_in_tags=None,
     base_dashboards_from_pillar=None,
     base_panels_from_pillar=None,
     base_rows_from_pillar=None,
@@ -85,6 +86,9 @@ def present(
 
     name
         Name of the grafana dashboard.
+
+    search_in_tags
+        Match dashboard only if it also have these tags
 
     base_dashboards_from_pillar
         A pillar key that contains a list of dashboards to inherit from
@@ -131,24 +135,45 @@ def present(
     _ensure_panel_ids(new_dashboard)
     _ensure_annotations(new_dashboard)
 
+    # Search existing dashboard with same name and tags
+    db_uid = None
+    db_uids = []
+    for db in __salt__["grafana4.search_dashboard"](
+            new_dashboard["title"], search_in_tags, orgname, profile):
+        if db["title"] == new_dashboard["title"]:
+            db_uids.append(db["uid"])
+    comments = []
+    while len(db_uids) > 0:
+        db_uid = db_uids.pop()
+        if len(db_uids) > 0:
+            # remove duplicated dashboards (keep only the last one)
+            if __opts__["test"]:
+                comments.append(f"Dashboard {name} (uid={db_uid}) is set to be deleted.")
+            else:
+                __salt__["grafana4.delete_dashboard"](db_uid, profile=profile)
+                comments.append(f"Dashboard {name} (uid={db_uid}) deleted.")
+
     # Create dashboard if it does not exist
-    old_dashboard = __salt__["grafana4.get_dashboard"](name, orgname, profile)
-    if not old_dashboard:
+    if db_uid is None:
         if __opts__["test"]:
             ret["result"] = None
-            ret["comment"] = f"Dashboard {name} is set to be created."
+            comments.append(f"Dashboard {name} is set to be created.")
+            ret["comment"] = "\n".join(comments)
             return ret
 
         response = __salt__["grafana4.create_update_dashboard"](
             dashboard=new_dashboard, overwrite=True, profile=profile
         )
         if response.get("status") == "success":
-            ret["comment"] = f"Dashboard {name} created."
+            comments.append(f"Dashboard {name} created.")
             ret["changes"]["new"] = f"Dashboard {name} created."
         else:
             ret["result"] = False
-            ret["comment"] = f"Failed to create dashboard {name}, response={response}"
+            comments.append(f"Failed to create dashboard {name}, response={response}")
+        ret["comment"] = "\n".join(comments)
         return ret
+
+    old_dashboard = __salt__["grafana4.get_dashboard"](db_uid, orgname, profile)
 
     # Add unmanaged rows to the dashboard. They appear at the top if they are
     # marked as pinned. They appear at the bottom otherwise.
@@ -166,7 +191,7 @@ def present(
     if updated_needed:
         if __opts__["test"]:
             ret["result"] = None
-            ret["comment"] = (
+            comments.append(
                 "Dashboard {} is set to be updated, changes={}".format(  # pylint: disable=consider-using-f-string
                     name,
                     salt.utils.json.dumps(
@@ -175,31 +200,42 @@ def present(
                     ),
                 )
             )
+            ret["comment"] = "\n".join(comments)
             return ret
+
+        # copy uid from old_dashboard if any so that it will actually update
+        # the old dashboard and not create a new one
+        if old_dashboard.get('uid'):
+            new_dashboard['uid'] = old_dashboard['uid']
 
         response = __salt__["grafana4.create_update_dashboard"](
             dashboard=new_dashboard, overwrite=True, profile=profile
         )
         if response.get("status") == "success":
-            updated_dashboard = __salt__["grafana4.get_dashboard"](name, orgname, profile)
+            updated_dashboard = __salt__["grafana4.get_dashboard"](response.get("uid"), orgname, profile)
             dashboard_diff = DictDiffer(_cleaned(updated_dashboard), _cleaned(old_dashboard))
-            ret["comment"] = f"Dashboard {name} updated."
+            comments.append(f"Dashboard {name} updated.")
             ret["changes"] = _dashboard_diff(_cleaned(new_dashboard), _cleaned(old_dashboard))
         else:
             ret["result"] = False
-            ret["comment"] = f"Failed to update dashboard {name}, response={response}"
+            comments.append(f"Failed to update dashboard {name}, response={response}")
+        ret["comment"] = "\n".join(comments)
         return ret
 
-    ret["comment"] = "Dashboard present"
+    comments.append("Dashboard present")
+    ret["comment"] = "\n".join(comments)
     return ret
 
 
-def absent(name, orgname=None, profile="grafana"):
+def absent(name, search_in_tags=None, orgname=None, profile="grafana"):
     """
     Ensure the named grafana dashboard is absent.
 
     name
         Name of the grafana dashboard.
+
+    search_in_tags
+        Match dashboard only if it also have these tags
 
     orgname
         Name of the organization in which the dashboard should be present.
@@ -213,19 +249,36 @@ def absent(name, orgname=None, profile="grafana"):
     if isinstance(profile, str):
         profile = __salt__["config.option"](profile)
 
-    existing_dashboard = __salt__["grafana4.get_dashboard"](name, orgname, profile)
-    if existing_dashboard:
-        if __opts__["test"]:
-            ret["result"] = None
-            ret["comment"] = f"Dashboard {name} is set to be deleted."
-            return ret
-
-        __salt__["grafana4.delete_dashboard"](name, profile=profile)
-        ret["comment"] = f"Dashboard {name} deleted."
-        ret["changes"]["new"] = f"Dashboard {name} deleted."
+    # Search existing dashboard with same name and tags
+    db_uid = None
+    db_uids = []
+    for db in __salt__["grafana4.search_dashboard"](name, search_in_tags, orgname, profile):
+        if db["title"] == name: db_uids.append(db["uid"])
+    comments = []
+    while len(db_uids) > 0:
+        db_uid = db_uids.pop()
+        if len(db_uids) > 0:
+            # remove duplicated dashboards (keep only the last one)
+            if __opts__["test"]:
+                comments.append(f"Dashboard {name} (uid={db_uid}) is set to be deleted.")
+            else:
+                __salt__["grafana4.delete_dashboard"](db_uid, profile=profile)
+                comments.append(f"Dashboard {name} (uid={db_uid}) deleted.")
+    if db_uid is None:
+        comments.append("Dashboard absent")
+        ret["comment"] = "\n".join(comments)
         return ret
 
-    ret["comment"] = "Dashboard absent"
+    if __opts__["test"]:
+        ret["result"] = None
+        comments.append(f"Dashboard {name} (uid={db_uid}) is set to be deleted.")
+        ret["comment"] = "\n".join(comments)
+        return ret
+
+    __salt__["grafana4.delete_dashboard"](db_uid, profile=profile)
+    comments.append(f"Dashboard {name} (uid={db_uid}) deleted.")
+    ret["comment"] = "\n".join(comments)
+    ret["changes"]["new"] = f"Dashboard (uid={db_uid}) {name} deleted."
     return ret
 
 

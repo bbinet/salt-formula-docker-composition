@@ -1139,12 +1139,15 @@ def delete_datasource(datasourceid, orgname=None, profile="grafana"):
     return response.json()
 
 
-def get_dashboard(slug, orgname=None, profile="grafana"):
+def search_dashboard(query, tags=None, orgname=None, profile="grafana"):
     """
     Get a dashboard.
 
-    slug
-        Slug (name) of the dashboard.
+    query
+        Query (name) of the dashboard.
+
+    tags
+        Tags to search for
 
     orgname
         Name of the organization.
@@ -1157,14 +1160,61 @@ def get_dashboard(slug, orgname=None, profile="grafana"):
 
     .. code-block:: bash
 
-        salt '*' grafana4.get_dashboard <slug>
+        salt '*' grafana4.search_dashboard <query>
+    """
+    if isinstance(profile, string_types):
+        profile = __salt__["config.option"](profile)
+    if orgname:
+        switch_org(orgname, profile)
+    params = [
+            ("query", query),
+            ("type", "dash-db"),
+            ]
+    if isinstance(tags, (list, tuple, set)):
+        for tag in tags:
+            if isinstance(tag, str):
+                params.append(("tag", tag))
+    response = requests.get(
+        "{0}/api/search".format(profile["grafana_url"]),
+        params=params,
+        auth=_get_auth(profile),
+        headers=_get_headers(profile),
+        timeout=profile.get("grafana_timeout", 3),
+    )
+    data = response.json()
+    if response.status_code == 404:
+        return None
+    if response.status_code >= 400:
+        response.raise_for_status()
+    return data
+
+
+def get_dashboard(uid, orgname=None, profile="grafana"):
+    """
+    Get a dashboard.
+
+    uid
+        Uid (name) of the dashboard.
+
+    orgname
+        Name of the organization.
+
+    profile
+        Configuration profile used to connect to the Grafana instance.
+        Default is 'grafana'.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' grafana4.get_dashboard <uid>
     """
     if isinstance(profile, string_types):
         profile = __salt__["config.option"](profile)
     if orgname:
         switch_org(orgname, profile)
     response = requests.get(
-        "{0}/api/dashboards/db/{1}".format(profile["grafana_url"], slug),
+        "{0}/api/dashboards/uid/{1}".format(profile["grafana_url"], uid),
         auth=_get_auth(profile),
         headers=_get_headers(profile),
         timeout=profile.get("grafana_timeout", 3),
@@ -1177,12 +1227,12 @@ def get_dashboard(slug, orgname=None, profile="grafana"):
     return data.get("dashboard")
 
 
-def delete_dashboard(slug, orgname=None, profile="grafana"):
+def delete_dashboard(uid, orgname=None, profile="grafana"):
     """
     Delete a dashboard.
 
-    slug
-        Slug (name) of the dashboard.
+    uid
+        Uid of the dashboard.
 
     orgname
         Name of the organization.
@@ -1195,14 +1245,14 @@ def delete_dashboard(slug, orgname=None, profile="grafana"):
 
     .. code-block:: bash
 
-        salt '*' grafana4.delete_dashboard <slug>
+        salt '*' grafana4.delete_dashboard <uid>
     """
     if isinstance(profile, string_types):
         profile = __salt__["config.option"](profile)
     if orgname:
         switch_org(orgname, profile)
     response = requests.delete(
-        "{0}/api/dashboards/db/{1}".format(profile["grafana_url"], slug),
+        "{0}/api/dashboards/uid/{1}".format(profile["grafana_url"], uid),
         auth=_get_auth(profile),
         headers=_get_headers(profile),
         timeout=profile.get("grafana_timeout", 3),

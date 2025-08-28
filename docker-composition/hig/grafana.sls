@@ -104,7 +104,8 @@ grafana4_dashboard_{{ orgname }}_{{ name }}:
       {%- set dash = cuscfg.grafana | traverse('dashboards:%s'% dash) %}
     {%- endif %}
   grafana4_dashboard.present:
-    - name: {{ name | lower }}
+    - name: {{ name }}
+    - search_in_tags: ["generated"]
     {%- if dash.type == 'file' %}
     {%- import_json dash.data as dashboard %}
     - dashboard: {{ dashboard | json }}
@@ -140,7 +141,7 @@ hl.dashboard.new(
   "true" if hlonnet.editable else "false",
   hlonnet.get('graphTooltip', 'default'),
   hlonnet.get('time_from', 'now-2d'),
-  hlonnet.get('tags', ['helioslite', 'generated']),
+  hlonnet.get('tags', []) + ['generated'],
   hlonnet.get('templates', []),
   hlonnet.get('annotations', []),
   panels,
@@ -167,7 +168,7 @@ hl.dashboard.new(
     {%- endif %}
   {%- else %}
   grafana4_dashboard.absent:
-    - name: {{ name | lower }}
+    - name: {{ name }}
   {%- endif %}
       {%- if client %}
     - profile: {{ client | json }}
