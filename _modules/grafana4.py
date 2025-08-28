@@ -1007,6 +1007,12 @@ def create_datasource(orgname=None, profile="grafana", **kwargs):
         profile = __salt__["config.option"](profile)
     if orgname:
         switch_org(orgname, profile)
+
+    kwargs["secureJsonData"] = {}
+    for p in ["basicAuthPassword", "password"]:
+        if kwargs.get(p):
+            kwargs["secureJsonData"][p] = kwargs[p]
+
     response = requests.post(
         "{0}/api/datasources".format(profile["grafana_url"]),
         json=kwargs,
@@ -1083,6 +1089,12 @@ def update_datasource(datasourceid, orgname=None, profile="grafana", **kwargs):
     """
     if isinstance(profile, string_types):
         profile = __salt__["config.option"](profile)
+
+    kwargs["secureJsonData"] = {}
+    for p in ["basicAuthPassword", "password"]:
+        if kwargs.get(p):
+            kwargs["secureJsonData"][p] = kwargs[p]
+
     response = requests.put(
         "{0}/api/datasources/{1}".format(profile["grafana_url"], datasourceid),
         json=kwargs,
