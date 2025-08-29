@@ -163,21 +163,26 @@ def present(
         return ret
 
     # At this stage, the datasource exists; however, the object provided by
-    # Grafana may lack some null keys compared to our "data" dict:
+    # Grafana may lack some null or redacted keys compared to our "data" dict:
     for key in data:
         if key not in datasource:
             datasource[key] = None
 
-    if data == datasource:
-        ret["comment"] = f"Data source {name} already up-to-date"
-        return ret
+    if equal_dicts(data, datasource, ignore_keys=["password", "basicAuthPassword", "uid", "typeName", "id", "orgId", "readOnly"]):
+        # if datasource seems up-to-date, let's also check for health as the
+        # password (which is redacted for privacy) might need an update
+        if __salt__["grafana4.ishealthy_datasource"](
+                datasource["uid"], orgname=orgname, profile=profile):
+            ret["result"] = True
+            ret["comment"] = f"Data source {name} already up-to-date"
+            return ret
 
     if __opts__["test"]:
         ret["comment"] = f"Datasource {name} will be updated"
         return ret
-    __salt__["grafana4.update_datasource"](datasource["id"], profile=profile, **data)
+    __salt__["grafana4.update_datasource"](datasource["uid"], profile=profile, **data)
     ret["result"] = True
-    ret["changes"] = deep_diff(datasource, data, ignore=["id", "orgId", "readOnly"])
+    ret["changes"] = deep_diff(datasource, data, ignore=["id", "uid", "typeName", "orgId", "readOnly"])
     ret["comment"] = f"Data source {name} updated"
     return ret
 
@@ -210,7 +215,7 @@ def absent(name, orgname=None, profile="grafana"):
     if __opts__["test"]:
         ret["comment"] = f"Datasource {name} will be deleted"
         return ret
-    __salt__["grafana4.delete_datasource"](datasource["id"], profile=profile)
+    __salt__["grafana4.delete_datasource"](datasource["uid"], profile=profile)
 
     ret["result"] = True
     ret["changes"][name] = "Absent"
@@ -226,3 +231,9 @@ def _get_json_data(defaults=None, **kwargs):
         if v is None:
             kwargs[k] = defaults.get(k)
     return kwargs
+
+def equal_dicts(a, b, ignore_keys=None):
+    if ignore_keys is None: ignore_keys = []
+    ka = set(a).difference(ignore_keys)
+    kb = set(b).difference(ignore_keys)
+    return ka == kb and all(a[k] == b[k] for k in ka)

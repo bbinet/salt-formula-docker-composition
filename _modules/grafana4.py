@@ -447,7 +447,7 @@ def switch_org(orgname, profile="grafana"):
     """
     Switch the current organization.
 
-    name
+    orgname
         Name of the organization to switch to.
 
     profile
@@ -1025,12 +1025,12 @@ def create_datasource(orgname=None, profile="grafana", **kwargs):
     return response.json()
 
 
-def update_datasource(datasourceid, orgname=None, profile="grafana", **kwargs):
+def update_datasource(uid, profile="grafana", **kwargs):
     """
     Update a datasource.
 
-    datasourceid
-        Id of the datasource.
+    uid
+        Uid of the datasource.
 
     name
         Name of the data source.
@@ -1084,7 +1084,7 @@ def update_datasource(datasourceid, orgname=None, profile="grafana", **kwargs):
 
     .. code-block:: bash
 
-        salt '*' grafana4.update_datasource <datasourceid>
+        salt '*' grafana4.update_datasource <uid>
 
     """
     if isinstance(profile, string_types):
@@ -1096,7 +1096,7 @@ def update_datasource(datasourceid, orgname=None, profile="grafana", **kwargs):
             kwargs["secureJsonData"][p] = kwargs[p]
 
     response = requests.put(
-        "{0}/api/datasources/{1}".format(profile["grafana_url"], datasourceid),
+        "{0}/api/datasources/uid/{1}".format(profile["grafana_url"], uid),
         json=kwargs,
         auth=_get_auth(profile),
         headers=_get_headers(profile),
@@ -1109,12 +1109,12 @@ def update_datasource(datasourceid, orgname=None, profile="grafana", **kwargs):
     return {}
 
 
-def delete_datasource(datasourceid, orgname=None, profile="grafana"):
+def delete_datasource(uid, profile="grafana"):
     """
     Delete a datasource.
 
-    datasourceid
-        Id of the datasource.
+    uid
+        Uid of the datasource.
 
     profile
         Configuration profile used to connect to the Grafana instance.
@@ -1124,12 +1124,12 @@ def delete_datasource(datasourceid, orgname=None, profile="grafana"):
 
     .. code-block:: bash
 
-        salt '*' grafana4.delete_datasource <datasource_id>
+        salt '*' grafana4.delete_datasource <uid>
     """
     if isinstance(profile, string_types):
         profile = __salt__["config.option"](profile)
     response = requests.delete(
-        "{0}/api/datasources/{1}".format(profile["grafana_url"], datasourceid),
+        "{0}/api/datasources/uid/{1}".format(profile["grafana_url"], uid),
         auth=_get_auth(profile),
         headers=_get_headers(profile),
         timeout=profile.get("grafana_timeout", 3),
@@ -1137,6 +1137,40 @@ def delete_datasource(datasourceid, orgname=None, profile="grafana"):
     if response.status_code >= 400:
         response.raise_for_status()
     return response.json()
+
+
+def ishealthy_datasource(uid, orgname=None, profile="grafana"):
+    """
+    Check health for a datasource (returns True if healthy, or False if not)
+
+    uid
+        Uid of the datasource.
+
+    orgname
+        Name of the organization.
+
+    profile
+        Configuration profile used to connect to the Grafana instance.
+        Default is 'grafana'.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' grafana4.ishealthy_datasource <uid>
+    """
+    if isinstance(profile, string_types):
+        profile = __salt__["config.option"](profile)
+    if orgname:
+        # need to switch org health api don't work if not in the right org
+        switch_org(orgname, profile)
+    response = requests.get(
+        "{0}/api/datasources/uid/{1}/health".format(profile["grafana_url"], uid),
+        auth=_get_auth(profile),
+        headers=_get_headers(profile),
+        timeout=profile.get("grafana_timeout", 3),
+    )
+    return response.status_code < 400
 
 
 def search_dashboard(query, tags=None, orgname=None, profile="grafana"):

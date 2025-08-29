@@ -267,9 +267,13 @@ def absent(name, profile="grafana"):
 
 
 def _get_json_data(defaults=None, **kwargs):
+    data = dict(**kwargs)
     if defaults is None:
         defaults = {}
     for k, v in kwargs.items():
         if v is None:
-            kwargs[k] = defaults.get(k)
-    return kwargs
+            if defaults.get(k) is None:
+                del data[k]
+            else:
+                data[k] = defaults.get(k)
+    return data
